@@ -11,7 +11,7 @@ import (
 
 var robotsFile, _ = os.Open(`./robots.txt`)
 var robotsConfig, _ = ParseStream(robotsFile)
-var baseHttpResponse = http.Response{
+var baseHTTPResponse = http.Response{
 	StatusCode: 200,
 	Header:     map[string][]string{`Content-Type`: {`text/plain`}},
 	Body:       ioutil.NopCloser(bytes.NewBufferString(``)),
@@ -144,7 +144,7 @@ func TestAllowCase5(t *testing.T) {
 }
 
 func TestParseResponseOK(t *testing.T) {
-	resp := baseHttpResponse
+	resp := baseHTTPResponse
 
 	config, err := ParseResponse(&resp)
 	if err != nil {
@@ -157,7 +157,7 @@ func TestParseResponseOK(t *testing.T) {
 }
 
 func TestParseResponseUnavailable(t *testing.T) {
-	resp := baseHttpResponse
+	resp := baseHTTPResponse
 	resp.StatusCode = 500
 
 	_, err := ParseResponse(&resp)
@@ -167,7 +167,7 @@ func TestParseResponseUnavailable(t *testing.T) {
 }
 
 func TestParseResponseWrongType(t *testing.T) {
-	resp := baseHttpResponse
+	resp := baseHTTPResponse
 	resp.Header = map[string][]string{`Content-Type`: {`text/html`}}
 
 	_, err := ParseResponse(&resp)
@@ -177,7 +177,7 @@ func TestParseResponseWrongType(t *testing.T) {
 }
 
 func TestParseResponseInvalidContent(t *testing.T) {
-	resp := baseHttpResponse
+	resp := baseHTTPResponse
 	resp.Body = ioutil.NopCloser(bytes.NewBufferString(`Hello world!`))
 
 	_, err := ParseResponse(&resp)

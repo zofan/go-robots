@@ -46,7 +46,7 @@ var commentRemover = regexp.MustCompile(`\s*#.*`)
 // ErrUnavailable is the error of resource temporary unavailable
 var ErrUnavailable = errors.New(`resource temporary unavailable`)
 
-// ErrWrongContentType  is the error of wrong content type
+// ErrWrongContentType is the error of wrong content type
 var ErrWrongContentType = errors.New(`wrong content type`)
 
 // ErrInvalidContent is the error of invalid content
