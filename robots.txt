@@ -1,0 +1,40 @@
+# https://developers.google.com/search/reference/robots_txt
+# https://yandex.ru/support/webmaster/controlling-robot/robots-txt.html
+
+User-Agent: *
+Disallow: /
+Crawl-delay: 1234567890
+Sitemap: https://example.com/sitemap2.xml
+
+
+# comment
+user-agent: google   # comment
+disallow: /posts$
+allow: /
+clean-param: sid&sort /posts*
+crawl-delay: 0.5
+request-rate: 1/5
+visit-time: 0600-0845
+
+user-agent: case-1
+Allow: /p
+Disallow: /
+
+user-agent: case-2
+Allow: /folder
+Disallow: /folder
+
+user-agent: case-3
+Allow: /page
+Disallow: /*.htm
+
+user-agent: case-4
+Allow: /$
+Disallow: /
+
+user-agent: case-5
+Allow: /$
+Disallow: /
+
+host: https://example.com/
+Sitemap: https://example.com/sitemap.xml
