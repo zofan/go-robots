@@ -9,8 +9,13 @@ import (
 	"testing"
 )
 
+// nolint:gochecknoglobals
 var robotsFile, _ = os.Open(`./robots.txt`)
+
+// nolint:gochecknoglobals
 var robotsConfig, _ = ParseStream(robotsFile)
+
+// nolint:gochecknoglobals
 var baseHTTPResponse = http.Response{
 	StatusCode: 200,
 	Header:     map[string][]string{`Content-Type`: {`text/plain`}},

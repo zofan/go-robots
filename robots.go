@@ -41,6 +41,7 @@ type Config struct {
 	Host      *url.URL
 }
 
+// nolint:gochecknoglobals
 var commentRemover = regexp.MustCompile(`\s*#.*`)
 
 // ErrUnavailable is the error of resource temporary unavailable
@@ -80,7 +81,7 @@ func ParseStream(stream io.Reader) (*Config, error) {
 
 	scanner := bufio.NewScanner(stream)
 	for scanner.Scan() {
-		line := strings.Trim(scanner.Text(), " \t\n\v\f\r\x85\xa0\xef\xbb\xbf")
+		line := strings.Trim(scanner.Text(), " \t\n\v\f\r\xef\xbb\xbf")
 		line = commentRemover.ReplaceAllString(line, ``)
 
 		if len(line) == 0 {
@@ -231,7 +232,8 @@ type pattern struct {
 }
 
 func (rule *pattern) MatchString(s string) bool {
-	return (rule.contain != `` && strings.Index(s, rule.contain) == 0) || (rule.regexp != nil && rule.regexp.MatchString(s))
+	return (rule.contain != `` &&
+		strings.Index(s, rule.contain) == 0) || (rule.regexp != nil && rule.regexp.MatchString(s))
 }
 
 func patternCompile(s string) *pattern {
