@@ -232,8 +232,8 @@ type pattern struct {
 }
 
 func (rule *pattern) MatchString(s string) bool {
-	return (rule.contain != `` &&
-		strings.Index(s, rule.contain) == 0) || (rule.regexp != nil && rule.regexp.MatchString(s))
+	return (rule.contain != `` && strings.Index(s, rule.contain) == 0) ||
+		(rule.regexp != nil && rule.regexp.MatchString(s))
 }
 
 func patternCompile(s string) *pattern {
