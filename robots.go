@@ -112,14 +112,14 @@ func ParseStream(stream io.Reader) (*Config, error) {
 func (config *Config) parseMainParam(key string, value string) bool {
 	switch key {
 	case `sitemap`:
-		parsedURL, err := url.Parse(value)
+		u, err := url.Parse(value)
 		if err == nil {
-			config.SiteMaps[value] = parsedURL
+			config.SiteMaps[value] = u
 		}
 	case `host`:
-		rawURL, err := url.Parse(value)
+		u, err := url.Parse(value)
 		if err == nil {
-			config.Host = rawURL
+			config.Host = u
 		}
 	case `user-agent`, `useragent`:
 		value = strings.ToLower(value)
