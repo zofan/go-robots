@@ -13,6 +13,14 @@ import (
 	"time"
 )
 
+var (
+	commentRemover = regexp.MustCompile(`\s*#.*`)
+
+	ErrUnavailable      = errors.New(`robots: resource temporary unavailable`)
+	ErrWrongContentType = errors.New(`robots: wrong content type`)
+	ErrInvalidContent   = errors.New(`robots: invalid content`)
+)
+
 // Group is the directives for user-agent
 type Group struct {
 	allows      []*pattern
@@ -40,18 +48,6 @@ type Config struct {
 	SiteMaps  map[string]*url.URL
 	Host      *url.URL
 }
-
-// nolint:gochecknoglobals
-var commentRemover = regexp.MustCompile(`\s*#.*`)
-
-// ErrUnavailable is the error of resource temporary unavailable
-var ErrUnavailable = errors.New(`resource temporary unavailable`)
-
-// ErrWrongContentType is the error of wrong content type
-var ErrWrongContentType = errors.New(`wrong content type`)
-
-// ErrInvalidContent is the error of invalid content
-var ErrInvalidContent = errors.New(`invalid content`)
 
 func ParseResponse(resp *http.Response) (*Config, error) {
 	if resp == nil {
