@@ -1,3 +1,3 @@
 module github.com/zofan/go-robots
 
-go 1.12
+go 1.14
