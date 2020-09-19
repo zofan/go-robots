@@ -3,6 +3,7 @@ package robots
 import (
 	"bufio"
 	"errors"
+	"github.com/zofan/go-qexp"
 	"io"
 	"net/http"
 	"net/url"
@@ -22,8 +23,8 @@ var (
 )
 
 type Group struct {
-	allows    []*pattern
-	disallows []*pattern
+	allows    []qexp.Matcher
+	disallows []qexp.Matcher
 
 	cleanParams []cleanParam
 
@@ -37,7 +38,7 @@ type VisitTime struct {
 }
 
 type cleanParam struct {
-	pattern *pattern
+	pattern qexp.Matcher
 	params  []string
 }
 
@@ -223,48 +224,12 @@ func (group *Group) CleanParam(u *url.URL) {
 	u.RawQuery = values.Encode()
 }
 
-type pattern struct {
-	contains string
-	prefix   string
-	suffix   string
-	equal    string
-	regexp   *regexp.Regexp
-}
-
-func (rule *pattern) MatchString(s string) bool {
-	return (rule.equal != `` && s == rule.equal) ||
-		(rule.prefix != `` && strings.HasPrefix(s, rule.prefix)) ||
-		(rule.suffix != `` && strings.HasSuffix(s, rule.suffix)) ||
-		(rule.contains != `` && strings.Index(s, rule.contains) >= 0) ||
-		(rule.regexp != nil && rule.regexp.MatchString(s))
-}
-
-func patternCompile(s string) *pattern {
+func patternCompile(s string) qexp.Matcher {
 	s = strings.TrimRight(s, `*`)
 
-	// "/path$"
-	if len(s) >= 2 && !strings.Contains(s, `*`) && strings.HasSuffix(s, `$`) {
-		return &pattern{equal: s[:len(s)-1]}
-	}
-
-	// "*/path"
-	if len(s) >= 2 && s[0] == '*' && !strings.ContainsAny(s[1:], `*$`) {
-		return &pattern{contains: s[1:]}
-	}
-
-	// "/path"
-	if !strings.ContainsAny(s, `*$`) {
-		return &pattern{prefix: s}
-	}
-
-	// "*/path$"
-	if len(s) >= 3 && s[0] == '*' && s[len(s)-1] == '$' && !strings.ContainsAny(s[1:len(s)-1], `*$`) {
-		return &pattern{suffix: s[1 : len(s)-1]}
-	}
-
 	s = regexp.QuoteMeta(s)
-	s = strings.Replace(s, `\*`, `.*`, -1)
-	s = strings.Replace(s, `\$`, `$`, -1)
+	s = strings.ReplaceAll(s, `\*`, `.*`)
+	s = strings.ReplaceAll(s, `\$`, `$`)
 
-	return &pattern{regexp: regexp.MustCompile(`^` + s)}
+	return qexp.MustCompile(`^` + s)
 }
