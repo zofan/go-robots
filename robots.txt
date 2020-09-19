@@ -36,5 +36,8 @@ user-agent: case-5
 Allow: /$
 Disallow: /
 
+User-Agent: *
+Disallow: /post/123
+
 host: https://example.com/
 Sitemap: https://example.com/sitemap.xml

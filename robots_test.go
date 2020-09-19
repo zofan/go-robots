@@ -9,18 +9,16 @@ import (
 	"testing"
 )
 
-// nolint:gochecknoglobals
-var robotsFile, _ = os.Open(`./robots.txt`)
+var (
+	robotsFile, _   = os.Open(`./robots.txt`)
+	robotsConfig, _ = ParseStream(robotsFile)
 
-// nolint:gochecknoglobals
-var robotsConfig, _ = ParseStream(robotsFile)
-
-// nolint:gochecknoglobals
-var baseHTTPResponse = http.Response{
-	StatusCode: 200,
-	Header:     map[string][]string{`Content-Type`: {`text/plain`}},
-	Body:       ioutil.NopCloser(bytes.NewBufferString(``)),
-}
+	baseHTTPResponse = http.Response{
+		StatusCode: 200,
+		Header:     map[string][]string{`Content-Type`: {`text/plain`}},
+		Body:       ioutil.NopCloser(bytes.NewBufferString(``)),
+	}
+)
 
 func TestOptions(t *testing.T) {
 	if len(robotsConfig.groups) == 0 {
@@ -191,7 +189,7 @@ func TestParseResponseInvalidContent(t *testing.T) {
 	}
 }
 
-func BenchmarkPatternContain(b *testing.B) {
+func BenchmarkPatternContains(b *testing.B) {
 	group := robotsConfig.MatchGroup(`case-1`)
 	if group == nil {
 		b.Error(`Invalid group`)

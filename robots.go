@@ -21,16 +21,16 @@ var (
 	ErrInvalidContent   = errors.New(`robots: invalid content`)
 )
 
-// Group is the directives for user-agent
 type Group struct {
-	allows      []*pattern
-	disallows   []*pattern
+	allows    []*pattern
+	disallows []*pattern
+
 	cleanParams []cleanParam
-	VisitTime   VisitTime
-	CrawlDelay  float64
+
+	VisitTime  VisitTime
+	CrawlDelay float64
 }
 
-// VisitTime is the structure of the time range
 type VisitTime struct {
 	From *time.Time
 	To   *time.Time
@@ -45,8 +45,9 @@ type Config struct {
 	lastGroup *Group
 	groups    map[string]*Group
 	groupKeys []string
-	SiteMaps  map[string]*url.URL
-	Host      *url.URL
+
+	SiteMaps map[string]*url.URL
+	Host     *url.URL
 }
 
 func ParseResponse(resp *http.Response) (*Config, error) {
@@ -77,8 +78,8 @@ func ParseStream(stream io.Reader) (*Config, error) {
 
 	scanner := bufio.NewScanner(stream)
 	for scanner.Scan() {
-		line := strings.Trim(scanner.Text(), " \t\n\v\f\r\xef\xbb\xbf")
-		line = commentRemover.ReplaceAllString(line, ``)
+		line := commentRemover.ReplaceAllString(scanner.Text(), ``)
+		line = strings.Trim(line, " \t\n\v\f\r\xef\xbb\xbf")
 
 		if len(line) == 0 {
 			continue
@@ -91,7 +92,7 @@ func ParseStream(stream io.Reader) (*Config, error) {
 		key := strings.ToLower(strings.TrimSpace(param[0]))
 		value := strings.TrimSpace(param[1])
 
-		if config.parseMainParam(key, value) || config.lastGroup == nil {
+		if config.parseMainParam(key, value) {
 			continue
 		}
 
@@ -117,13 +118,6 @@ func (config *Config) parseMainParam(key string, value string) bool {
 		if err == nil {
 			config.Host = u
 		}
-	case `user-agent`, `useragent`:
-		value = strings.ToLower(value)
-		if _, ok := config.groups[value]; !ok {
-			config.groups[value] = &Group{}
-			config.groupKeys = append(config.groupKeys, value)
-		}
-		config.lastGroup = config.groups[value]
 	default:
 		return false
 	}
@@ -133,6 +127,13 @@ func (config *Config) parseMainParam(key string, value string) bool {
 
 func (config *Config) parseGroupParam(key string, value string) {
 	switch key {
+	case `user-agent`, `useragent`:
+		value = strings.ToLower(value)
+		if _, ok := config.groups[value]; !ok {
+			config.groups[value] = &Group{}
+			config.groupKeys = append(config.groupKeys, value)
+		}
+		config.lastGroup = config.groups[value]
 	case `crawl-delay`, `crawldelay`:
 		config.lastGroup.CrawlDelay, _ = strconv.ParseFloat(value, 64)
 	case `request-rate`, `requestrate`:
@@ -223,18 +224,42 @@ func (group *Group) CleanParam(u *url.URL) {
 }
 
 type pattern struct {
-	contain string
-	regexp  *regexp.Regexp
+	contains string
+	prefix   string
+	suffix   string
+	equal    string
+	regexp   *regexp.Regexp
 }
 
 func (rule *pattern) MatchString(s string) bool {
-	return (rule.contain != `` && strings.Index(s, rule.contain) == 0) ||
+	return (rule.equal != `` && s == rule.equal) ||
+		(rule.prefix != `` && strings.HasPrefix(s, rule.prefix)) ||
+		(rule.suffix != `` && strings.HasSuffix(s, rule.suffix)) ||
+		(rule.contains != `` && strings.Index(s, rule.contains) >= 0) ||
 		(rule.regexp != nil && rule.regexp.MatchString(s))
 }
 
 func patternCompile(s string) *pattern {
-	if !strings.Contains(s, `*`) && !strings.Contains(s, `$`) {
-		return &pattern{contain: s}
+	s = strings.TrimRight(s, `*`)
+
+	// "/path$"
+	if len(s) >= 2 && !strings.Contains(s, `*`) && strings.HasSuffix(s, `$`) {
+		return &pattern{equal: s[:len(s)-1]}
+	}
+
+	// "*/path"
+	if len(s) >= 2 && s[0] == '*' && !strings.ContainsAny(s[1:], `*$`) {
+		return &pattern{contains: s[1:]}
+	}
+
+	// "/path"
+	if !strings.ContainsAny(s, `*$`) {
+		return &pattern{prefix: s}
+	}
+
+	// "*/path$"
+	if len(s) >= 3 && s[0] == '*' && s[len(s)-1] == '$' && !strings.ContainsAny(s[1:len(s)-1], `*$`) {
+		return &pattern{suffix: s[1 : len(s)-1]}
 	}
 
 	s = regexp.QuoteMeta(s)
