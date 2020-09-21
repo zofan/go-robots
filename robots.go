@@ -104,7 +104,7 @@ func ParseStream(stream io.Reader) (*Config, error) {
 		return len(config.groupKeys[i]) > len(config.groupKeys[j])
 	})
 
-	return config, nil
+	return config, scanner.Err()
 }
 
 func (config *Config) parseMainParam(key string, value string) bool {
